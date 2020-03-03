@@ -4,6 +4,7 @@
     <title>Hello WebSocket</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.0.3/sockjs.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript">
         var stompClient = null;
 
@@ -24,6 +25,15 @@
                     console.log(greeting);
                     showGreeting(JSON.parse(greeting.body).content);
                 });
+                stompClient.subscribe('/topic/location', (obj) => {
+                    console.log('receiving: ' + obj);
+                    var res = JSON.parse(obj.body);
+                    console.log(res);
+                    var p_lat = document.getElementById('r_lat');
+                    var p_lon = document.getElementById('r_lon');
+                    p_lat.innerHTML =  res.lat.toString();
+                    p_lon.innerText =  res.lon.toString();
+                });
             });
         }
 
@@ -39,6 +49,23 @@
             var name = document.getElementById('name').value;
             stompClient.send("/app/hello", {}, JSON.stringify({ 'name': name }));
         }
+
+        function submitLocation() {
+            var lat = document.getElementById('lat').value;
+            var lon = document.getElementById('lon').value;
+            var obj = {"lat": lat, "lon": lon};
+            $.ajax({
+                url: 'http://localhost:9000/updateData',
+                type: 'POST',
+                contentType: "application/json",
+                dataType: 'json',
+                data: JSON.stringify(obj)
+            });
+        }
+        // function sendLocation() {
+        //     var lat = document.getElementById('lat').value;
+        //     var lon = document.getElementById('lon').value;
+        // }
 
         function showGreeting(message) {
             var response = document.getElementById('response');
@@ -61,6 +88,15 @@
         <label>What is your name?</label><input type="text" id="name" />
         <button id="sendName" onclick="sendName();">Send</button>
         <p id="response"></p>
+    </div>
+        <label> Enter Lat - Lon</label>
+        <input type="text" id="lat"/>
+        <input type="text" id="lon"/>
+         <button id="submmitLocation" onclick="submitLocation();"> send location </button>
+    <div id="location">
+        <label>Updating location...</label>
+        <p id="r_lat"></p>
+        <p id="r_lon"></p>
     </div>
 </div>
 </body>
